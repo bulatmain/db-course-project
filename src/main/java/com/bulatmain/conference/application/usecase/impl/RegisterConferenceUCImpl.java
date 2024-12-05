@@ -6,6 +6,7 @@ import com.bulatmain.conference.application.model.dto.organizer.OrganizerCreateD
 import com.bulatmain.conference.application.model.dto.organizer.OrganizerDTO;
 import com.bulatmain.conference.application.model.fabric.conference.ConferenceFabric;
 import com.bulatmain.conference.application.port.event.ConferenceRegisteredEvent;
+import com.bulatmain.conference.application.port.event.OrganizerRegisteredEvent;
 import com.bulatmain.conference.application.port.gateway.ConferenceGateway;
 import com.bulatmain.conference.application.port.gateway.EventPublisher;
 import com.bulatmain.conference.application.port.gateway.OrganizerGateway;
@@ -59,6 +60,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
             );
             var id = dto.getId();
             log.debug("Organizer {} created", id);
+            eventPublisher.publish(new OrganizerRegisteredEvent(id));
             return id;
         }
         return organizerDtoOpt.get().getId();
