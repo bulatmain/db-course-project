@@ -23,8 +23,6 @@ public class ConferenceDAO implements ConferenceGateway {
     private final ConferenceFromRS confMapping =
             new ConferenceFromRS();
 
-    private final OrganizerFromRS orgMapping =
-            new OrganizerFromRS();
 
     @Override
     public Optional<ConferenceDTO> findByOrganizerIdAndName(String organizerId, String name)
@@ -54,77 +52,41 @@ public class ConferenceDAO implements ConferenceGateway {
         }
     }
 
-    @Override
-    public Collection<ConferenceDTO> getConferences() throws GatewayException {
-        String sql = """
-                SELECT *
-                FROM conference;
-                """;
-        try {
-            return source.statement(stmt -> {
-                return confMapping.convertCollection(stmt.executeQuery(sql));
-            });
-        } catch (SQLException e) {
-            throw new GatewayException(e.getMessage());
-        }
-    }
+//    @Override
+//    public Collection<ConferenceDTO> getConferences() throws GatewayException {
+//        String sql = """
+//                SELECT *
+//                FROM conference;
+//                """;
+//        try {
+//            return source.statement(stmt -> {
+//                return confMapping.convertCollection(stmt.executeQuery(sql));
+//            });
+//        } catch (SQLException e) {
+//            throw new GatewayException(e.getMessage());
+//        }
+//    }
 
     @Override
     public ConferenceDTO save(ConferenceCreateDTO dto) throws GatewayException {
-        String sqlCheckOrganizer = """
-                SELECT id
-                FROM organizer
-                WHERE id = ?
+        String sql = """
+                INSERT INTO conference(id, organizer_id, name)
+                VALUES (?, ?, ?);
                 """;
-        String sqlInsertOrg = """
-                INSERT INTO organizer(id)
-                VALUES (?);
-                """;
-        String sqlInsertConf = """
-                BEGIN
-                    INSERT INTO conference(organizer_id, name)
-                    VALUES (?, ?);
-                    
-                    SELECT *
-                    FROM conference
-                    WHERE   organizer_id = ? AND
-                            name = ?;
-                COMMIT;
-                """;
+        var orgId = dto.getOrganizerId();
+        var name = dto.getConferenceName();
         try {
-            var organizerExists = source.preparedStatement(sqlCheckOrganizer, stmt -> {
-                stmt.setString(1, dto.getOrganizerId());
-                var rs = stmt.executeQuery();
-                var organizers = orgMapping.convertCollection(rs);
-                return !organizers.isEmpty();
+            source.preparedStatement(sql, stmt -> {
+                var id = orgId + "$" + name;
+                stmt.setString(1, id);
+                stmt.setString(2, orgId);
+                stmt.setString(3, name);
+                stmt.executeUpdate();
             });
-            if (!organizerExists) {
-                var sql = makeTransaction(sqlInsertOrg, sqlInsertConf);
-                return source.preparedStatement(sql, stmt -> {
-                    stmt.setString(1, dto.getOrganizerId());
-                    stmt.setString(2, dto.getOrganizerId());
-                    stmt.setString(3, dto.getConferenceName());
-                    return confMapping.convert(stmt.executeQuery());
-                });
-            } else {
-                return source.preparedStatement(sqlInsertConf, stmt -> {
-                    stmt.setString(1, dto.getOrganizerId());
-                    stmt.setString(2, dto.getConferenceName());
-                    return confMapping.convert(stmt.executeQuery());
-                });
-            }
+            return findByOrganizerIdAndName(orgId, name).get();
         } catch (SQLException e) {
-            throw  new GatewayException(e.getMessage());
+            throw new GatewayException(e.getMessage());
         }
-    }
-
-    private String makeTransaction(String sql1, String sql2) {
-        String builder = "BEGIN\n" +
-                sql1 +
-                ";\n" +
-                sql2 +
-                ";\nCOMMIT;";
-        return builder;
     }
 
     private static class ConferenceFromRS implements ResultSetMapping<ConferenceDTO> {
@@ -137,12 +99,5 @@ public class ConferenceDAO implements ConferenceGateway {
         }
     }
 
-    private static class OrganizerFromRS implements ResultSetMapping<OrganizerDTO> {
-        @Override
-        public OrganizerDTO convert(ResultSet rs) throws SQLException {
-            return OrganizerDTO.builder()
-                    .id(rs.getString("id"))
-                    .build();
-        }
-    }
+
 }

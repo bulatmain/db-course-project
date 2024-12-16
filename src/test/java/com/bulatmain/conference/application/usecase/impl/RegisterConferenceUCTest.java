@@ -1,7 +1,8 @@
 package com.bulatmain.conference.application.usecase.impl;
 
 import com.bulatmain.conference.application.model.dto.conference.ConferenceCreateDTO;
-import com.bulatmain.conference.application.model.dto.map.ConferenceMapper;
+import com.bulatmain.conference.application.model.dto.map.ConferenceMapperImpl;
+import com.bulatmain.conference.application.model.dto.map.OrganizerMapperImpl;
 import com.bulatmain.conference.application.model.dto.organizer.OrganizerCreateDTO;
 import com.bulatmain.conference.application.model.fabric.conference.ConferenceFabric;
 import com.bulatmain.conference.application.port.event.ConferenceRegisteredEvent;
@@ -9,9 +10,7 @@ import com.bulatmain.conference.application.port.event.OrganizerRegisteredEvent;
 import com.bulatmain.conference.application.port.gateway.*;
 import com.bulatmain.conference.application.port.request.RegisterConferenceRequest;
 import com.bulatmain.conference.application.usecase.exception.ConferenceAlreadyExistsException;
-import com.bulatmain.conference.application.usecase.exception.UseCaseException;
-import com.bulatmain.conference.application.usecase.impl.RegisterConferenceUCImpl;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.bulatmain.conference.config.application.model.fabric.FabricConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootTest
+@SpringBootTest(classes = {
+        ConferenceMapperImpl.class,
+        OrganizerMapperImpl.class,
+        FabricConfig.class
+})
 public class RegisterConferenceUCTest {
     private RegisterConferenceUCImpl registerConferenceUC;
 
@@ -71,7 +74,7 @@ public class RegisterConferenceUCTest {
             Assertions.assertTrue(eventPublisher.containsEvent(OrganizerRegisteredEvent.class, 1));
             Assertions.assertTrue(eventPublisher.containsEvent(ConferenceRegisteredEvent.class, 1));
 
-        } catch (UseCaseException e) {
+        } catch (Exception e) {
             Assertions.fail();
         }
     }
@@ -109,7 +112,7 @@ public class RegisterConferenceUCTest {
             Assertions.assertTrue(eventPublisher.containsEvent(OrganizerRegisteredEvent.class, 0));
             Assertions.assertTrue(eventPublisher.containsEvent(ConferenceRegisteredEvent.class, 1));
 
-        } catch (UseCaseException e) {
+        } catch (Exception e) {
             Assertions.fail();
         }
     }
@@ -151,11 +154,9 @@ public class RegisterConferenceUCTest {
             );
             Assertions.assertTrue(eventPublisher.containsEvent(OrganizerRegisteredEvent.class, 0));
             Assertions.assertTrue(eventPublisher.containsEvent(ConferenceRegisteredEvent.class, 0));
+        } catch (Exception e) {
+            Assertions.fail();
         }
     }
 
-    @Bean
-    public ConferenceFabric conferenceFabric(ConferenceMapper conferenceMapper) {
-        return new ConferenceFabric(conferenceMapper);
-    }
 }

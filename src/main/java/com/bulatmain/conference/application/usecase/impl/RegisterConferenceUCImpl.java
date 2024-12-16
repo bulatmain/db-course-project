@@ -10,6 +10,7 @@ import com.bulatmain.conference.application.port.event.OrganizerRegisteredEvent;
 import com.bulatmain.conference.application.port.gateway.ConferenceGateway;
 import com.bulatmain.conference.application.port.gateway.EventPublisher;
 import com.bulatmain.conference.application.port.gateway.OrganizerGateway;
+import com.bulatmain.conference.application.port.gateway.exception.GatewayException;
 import com.bulatmain.conference.application.port.request.RegisterConferenceRequest;
 import com.bulatmain.conference.application.usecase.RegisterConferenceUC;
 import com.bulatmain.conference.application.usecase.exception.ConferenceAlreadyExistsException;
@@ -33,7 +34,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
      */
     @Override
     public String execute(RegisterConferenceRequest request)
-            throws ConferenceAlreadyExistsException {
+            throws ConferenceAlreadyExistsException, GatewayException {
         log.debug("Request: org {}, name {}", request.getOrganizerId(), request.getConferenceName());
         var organizerId = createOrganizerIfNotExist(request.getOrganizerId());
         checkNoSuchConferenceExist(request.getOrganizerId(), request.getConferenceName());
@@ -50,7 +51,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
      * @param organizerId
      * @return Organizer id
      */
-    protected String createOrganizerIfNotExist(String organizerId) {
+    protected String createOrganizerIfNotExist(String organizerId) throws GatewayException {
         var organizerDtoOpt = organizerGateway.findById(organizerId);
         if (organizerDtoOpt.isEmpty()) {
             var dto = organizerGateway.save(
@@ -74,7 +75,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
      * @throws ConferenceAlreadyExistsException
      */
     protected void checkNoSuchConferenceExist(String organizerId, String name)
-            throws ConferenceAlreadyExistsException {
+            throws ConferenceAlreadyExistsException, GatewayException {
         var confDtoOpt = conferenceGateway.findByOrganizerIdAndName(organizerId, name);
         if (confDtoOpt.isPresent()) {
             log.error("ERROR: conference with given organizer id {} and name {} exists", organizerId, name);
@@ -87,7 +88,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
      * @param request
      * @return
      */
-    protected String saveConference(RegisterConferenceRequest request) {
+    protected String saveConference(RegisterConferenceRequest request) throws GatewayException {
         var conference = conferenceFabric.build(request);
         var conferenceDTO = conferenceGateway.save(ConferenceCreateDTO.of(conference));
         return conferenceDTO.getId();

@@ -1,6 +1,7 @@
 package com.bulatmain.conference.infastructure.repository.db;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -12,6 +13,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Profile({ "dev", "prod" })
 public class CustomJdbcTemplate {
     @FunctionalInterface
     public interface SQLFunction<T, R> {
