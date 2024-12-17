@@ -38,12 +38,9 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
     public String execute(RegisterConferenceRequest request)
             throws ConferenceAlreadyExistsException, GatewayException {
         log.debug("Request: org {}, name {}", request.getOrganizerId(), request.getConferenceName());
-        var organizerId = createOrganizerIfNotExist(request.getOrganizerId());
+        createOrganizerIfNotExist(request.getOrganizerId());
         checkNoSuchConferenceExist(request.getOrganizerId(), request.getConferenceName());
-        var conferenceId = saveConference(request);
-        log.info("Conference {} created", conferenceId);
-        eventPublisher.publish(new ConferenceRegisteredEvent(conferenceId));
-        return conferenceId;
+        return saveConference(request);
     }
 
     /**
@@ -62,7 +59,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
                             .build()
             );
             var id = dto.getId();
-            log.debug("Organizer {} created", id);
+            log.info("Organizer {} created", id);
             eventPublisher.publish(new OrganizerRegisteredEvent(id));
             return id;
         }
@@ -93,6 +90,9 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
     protected String saveConference(RegisterConferenceRequest request) throws GatewayException {
         var conference = conferenceFabric.build(request);
         var conferenceDTO = conferenceGateway.save(ConferenceCreateDTO.of(conference));
-        return conferenceDTO.getId();
+        var id = conferenceDTO.getId();
+        eventPublisher.publish(new ConferenceRegisteredEvent(id));
+        log.info("Conference {} created", id);
+        return id;
     }
 }
