@@ -1,8 +1,11 @@
 package com.bulatmain.conference.infastructure.repository.db;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.amqp.ConnectionFactoryCustomizer;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -27,17 +30,43 @@ public class CustomJdbcTemplate {
 
     private final DataSource connectionPool;
 
+    private Connection getConnection() throws SQLException {
+        return DataSourceUtils.getConnection(connectionPool);
+    }
+
+    private void releaseConnection(Connection conn) {
+        DataSourceUtils.releaseConnection(conn, connectionPool);
+    }
+
     public void connection(SQLConsumer<? super Connection> consumer) throws SQLException {
         Objects.requireNonNull(consumer);
-        try (Connection conn = connectionPool.getConnection()) {
+        var conn = getConnection();
+        try {
             consumer.accept(conn);
+        } catch (SQLException e) {
+            // Release Connection early, to avoid potential connection pool deadlock
+            // in the case when the exception translator hasn't been initialized yet.
+            releaseConnection(conn);
+            conn = null;
+            throw e;
+        } finally {
+            releaseConnection(conn);
         }
     }
 
     public <R> R connection(SQLFunction<? super Connection, ? extends R> function) throws SQLException {
         Objects.requireNonNull(function);
-        try (Connection conn = connectionPool.getConnection()) {
+        var conn = getConnection();
+        try {
             return function.apply(conn);
+        } catch (SQLException e) {
+            // Release Connection early, to avoid potential connection pool deadlock
+            // in the case when the exception translator hasn't been initialized yet.
+            releaseConnection(conn);
+            conn = null;
+            throw e;
+        } finally {
+            releaseConnection(conn);
         }
     }
 
