@@ -17,6 +17,7 @@ import com.bulatmain.conference.application.usecase.exception.ConferenceAlreadyE
 import com.bulatmain.conference.domain.conference.entity.Conference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
      * @throws ConferenceAlreadyExistsException
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String execute(RegisterConferenceRequest request)
             throws ConferenceAlreadyExistsException, GatewayException {
         log.debug("Request: org {}, name {}", request.getOrganizerId(), request.getConferenceName());
