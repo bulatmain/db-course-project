@@ -12,7 +12,7 @@ public class ConferenceCreateDTO {
 
     public static ConferenceCreateDTO of(Conference conference) {
         return ConferenceCreateDTO.builder()
-                .organizerId(conference.getOrganizerId().get())
+                .organizerId(conference.getOrganizer().getId().get())
                 .conferenceName(conference.getName().get())
                 .build();
     }

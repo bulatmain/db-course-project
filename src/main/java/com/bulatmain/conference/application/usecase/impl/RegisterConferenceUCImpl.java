@@ -1,9 +1,7 @@
 package com.bulatmain.conference.application.usecase.impl;
 
 import com.bulatmain.conference.application.model.dto.conference.ConferenceCreateDTO;
-import com.bulatmain.conference.application.model.dto.conference.ConferenceDTO;
 import com.bulatmain.conference.application.model.dto.organizer.OrganizerCreateDTO;
-import com.bulatmain.conference.application.model.dto.organizer.OrganizerDTO;
 import com.bulatmain.conference.application.model.fabric.conference.ConferenceFabric;
 import com.bulatmain.conference.application.port.event.ConferenceRegisteredEvent;
 import com.bulatmain.conference.application.port.event.OrganizerRegisteredEvent;
@@ -14,7 +12,6 @@ import com.bulatmain.conference.application.port.gateway.exception.GatewayExcept
 import com.bulatmain.conference.application.port.request.RegisterConferenceRequest;
 import com.bulatmain.conference.application.usecase.RegisterConferenceUC;
 import com.bulatmain.conference.application.usecase.exception.ConferenceAlreadyExistsException;
-import com.bulatmain.conference.domain.conference.entity.Conference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +85,7 @@ public class RegisterConferenceUCImpl implements RegisterConferenceUC {
      * @return
      */
     protected String saveConference(RegisterConferenceRequest request) throws GatewayException {
-        var conference = conferenceFabric.build(request);
+        var conference = conferenceFabric.create(request);
         var conferenceDTO = conferenceGateway.save(ConferenceCreateDTO.of(conference));
         var id = conferenceDTO.getId();
         eventPublisher.publish(new ConferenceRegisteredEvent(id));
