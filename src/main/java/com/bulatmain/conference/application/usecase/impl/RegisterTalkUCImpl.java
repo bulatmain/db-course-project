@@ -5,6 +5,8 @@ import com.bulatmain.conference.application.port.gateway.EventPublisher;
 import com.bulatmain.conference.application.port.gateway.exception.GatewayException;
 import com.bulatmain.conference.application.port.request.RegisterTalkRequest;
 import com.bulatmain.conference.application.usecase.RegisterTalkUC;
+import com.bulatmain.conference.application.usecase.exception.NoSuchConferenceException;
+import com.bulatmain.conference.application.usecase.exception.TalkAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +23,8 @@ public class RegisterTalkUCImpl implements RegisterTalkUC {
 
     @Override
     @Transactional
-    public String execute(RegisterTalkRequest request) throws GatewayException {
+    public String execute(RegisterTalkRequest request)
+            throws NoSuchConferenceException, TalkAlreadyExistsException, GatewayException {
         // 1. Check if given conference exists
         checkSuchConferenceExists(request.getConferenceId());
         // 2. Check if given talk does not exist
@@ -34,7 +37,7 @@ public class RegisterTalkUCImpl implements RegisterTalkUC {
         return talkId;
     }
 
-    private void checkSuchConferenceExists(String conferenceId) {
+    private void checkSuchConferenceExists(String conferenceId) throws NoSuchConferenceException {
         var confOpt = conferenceGateway.findById(conferenceId);
         if (confOpt.isEmpty()) {
             log.debug("Error: there are no conference with given id {}", conferenceId);
@@ -42,7 +45,7 @@ public class RegisterTalkUCImpl implements RegisterTalkUC {
         }
     }
 
-    private void checkNoSuchTalkExists(String conferenceId, String name) {
+    private void checkNoSuchTalkExists(String conferenceId, String name) throws TalkAlreadyExistsException {
         var talkOpt = talkGateway.findByConfIdAndName(
                 conferenceId,
                 name
