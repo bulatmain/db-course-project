@@ -58,9 +58,7 @@ public class ConferenceController {
     @GetMapping("/{conferenceId}")
     public ResponseEntity<ConferenceDTO> getConference(@PathVariable("conferenceId") String conferenceId) {
         try {
-            var request = GetConferenceRequest.builder()
-                    .conferenceId(conferenceId)
-                    .build();
+            var request = new GetConferenceRequest(conferenceId);
             return new ResponseEntity<>(getConferenceUC.execute(request), HttpStatus.OK);
         } catch (NoSuchConferenceException e) {
             log.debug(e.getMessage());

@@ -6,11 +6,13 @@ import com.bulatmain.conference.domain.talk.entity.Talk;
 import com.bulatmain.conference.domain.talk.value.TalkId;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class TalkIdFabric implements Fabric<TalkId, TalkIdDTO> {
     @Override
     public TalkId create(TalkIdDTO dto) {
-        return () -> dto.getConferenceId() + "$" + dto.getTalkName();
+        return () -> String.valueOf(Objects.hash(dto.getConferenceId(), dto.getTalkName()));
     }
 
     public TalkId create(String conferenceId, String talkName) {

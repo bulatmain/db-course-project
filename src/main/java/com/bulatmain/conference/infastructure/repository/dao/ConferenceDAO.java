@@ -77,7 +77,7 @@ public class ConferenceDAO
 
         var query = new QueryStatement<ConferenceDTO>(sql, List.of(organizerId, name), rsMapping);
 
-        return findUnique(
+        var dtoOpt = findUnique(
                 query,
                 String.format(
                         "WARN: returned multiple conferences with same organizerId %s and name %s",
@@ -85,6 +85,13 @@ public class ConferenceDAO
                         name
                 )
         );
+        if (dtoOpt.isEmpty()) {
+            return dtoOpt;
+        }
+        var dto = dtoOpt.get();
+        var talkIds = talkDAO.getIdsByConfId(dto.getOrganizerId());
+        dto.setTalkIds(talkIds);
+        return Optional.of(dto);
     }
 
     @Override

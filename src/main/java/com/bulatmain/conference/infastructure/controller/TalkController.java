@@ -49,7 +49,7 @@ public class TalkController {
 
 
     @GetMapping
-    public ResponseEntity<Collection<TalkBriefDTO>> getConferences() {
+    public ResponseEntity<Collection<TalkBriefDTO>> getTalks() {
         try {
             var talks = getTalksUC.execute();
             return new ResponseEntity<>(talks, HttpStatus.OK);
@@ -60,11 +60,9 @@ public class TalkController {
     }
 
     @GetMapping("/{talkId}")
-    public ResponseEntity<TalkDTO> getConference(@PathVariable("talkId") String talkId) {
+    public ResponseEntity<TalkDTO> getTalk(@PathVariable("talkId") String talkId) {
         try {
-            var request = GetTalkRequest.builder()
-                    .id(talkId)
-                    .build();
+            var request = new GetTalkRequest(talkId);
             return new ResponseEntity<>(getTalkUC.execute(request), HttpStatus.OK);
         } catch (NoSuchTalkException e) {
             log.debug(e.getMessage());

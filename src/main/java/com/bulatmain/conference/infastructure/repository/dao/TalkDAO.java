@@ -54,7 +54,7 @@ public class TalkDAO
                 """;
         var query = new QueryStatement<TalkDTO>(sql, List.of(conferenceId, name), rsMapping);
 
-        return findUnique(
+        var dtoOpt = findUnique(
                 query,
                 String.format(
                         "WARN: find multiple talks with same conference_id %s and name %s",
@@ -62,6 +62,15 @@ public class TalkDAO
                         name
                 )
         );
+        if (dtoOpt.isEmpty()) {
+            return dtoOpt;
+        }
+        var dto = dtoOpt.get();
+        var speakerIds = speakerDAO.getIdsByTalkId(dto.getId());
+//        var listenerIds = listenerDAO.getIdsByTalkId(id);
+        dto.setSpeakerIds(speakerIds);
+        dto.setListenerIds(List.of());
+        return Optional.of(dto);
     }
 
     @Override
@@ -137,6 +146,7 @@ public class TalkDAO
         var speakerIds = speakerDAO.getIdsByTalkId(id);
 //        var listenerIds = listenerDAO.getIdsByTalkId(id);
         dto.setSpeakerIds(speakerIds);
+        dto.setListenerIds(List.of());
         return Optional.of(dto);
     }
     

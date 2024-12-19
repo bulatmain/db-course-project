@@ -5,11 +5,13 @@ import com.bulatmain.conference.application.model.fabric.Fabric;
 import com.bulatmain.conference.domain.conference.value.ConferenceId;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class ConferenceIdFabric implements Fabric<ConferenceId, ConferenceIdDTO> {
     @Override
     public ConferenceId create(ConferenceIdDTO dto) {
-        return () -> dto.getOrganizerId() + "$" + dto.getConferenceName();
+        return () -> String.valueOf(Objects.hash(dto.getOrganizerId(), dto.getConferenceName()));
     }
 
     public ConferenceId create(String name, String orgId) {
