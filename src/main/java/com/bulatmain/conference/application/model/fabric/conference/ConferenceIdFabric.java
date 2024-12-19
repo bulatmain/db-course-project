@@ -3,7 +3,9 @@ package com.bulatmain.conference.application.model.fabric.conference;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceIdDTO;
 import com.bulatmain.conference.application.model.fabric.Fabric;
 import com.bulatmain.conference.domain.conference.value.ConferenceId;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ConferenceIdFabric implements Fabric<ConferenceId, ConferenceIdDTO> {
     @Override
     public ConferenceId create(ConferenceIdDTO dto) {

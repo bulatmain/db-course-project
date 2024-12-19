@@ -2,7 +2,6 @@ package com.bulatmain.conference.application.model.dto.map;
 
 import com.bulatmain.conference.application.model.dto.talk.TalkCreateDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkDTO;
-import com.bulatmain.conference.application.port.request.RegisterTalkRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
@@ -15,5 +14,4 @@ import org.mapstruct.ReportingPolicy;
 public interface TalkMapper {
 
     TalkDTO createDtoToDto(TalkCreateDTO dto);
-    TalkCreateDTO registerRequestToCreateDto(RegisterTalkRequest dto);
 }

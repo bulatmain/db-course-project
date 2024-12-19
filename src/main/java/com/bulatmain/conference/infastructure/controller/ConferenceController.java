@@ -2,7 +2,7 @@ package com.bulatmain.conference.infastructure.controller;
 
 import com.bulatmain.conference.application.port.request.RegisterConferenceRequest;
 import com.bulatmain.conference.application.usecase.RegisterConferenceUC;
-import com.bulatmain.conference.application.usecase.exception.ConferenceAlreadyExistsException;
+import com.bulatmain.conference.domain.organizer.exception.ConferenceAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

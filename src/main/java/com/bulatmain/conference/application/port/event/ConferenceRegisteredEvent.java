@@ -12,7 +12,7 @@ public class ConferenceRegisteredEvent extends Event {
     @Override
     public String getRecord() {
         return "ConferenceRegisteredEvent: {" +
-                    timeOfOccurence + ", " + conferenceId +
+                timeOfOccurrence + ", " + conferenceId +
                 "}";
     }
 }

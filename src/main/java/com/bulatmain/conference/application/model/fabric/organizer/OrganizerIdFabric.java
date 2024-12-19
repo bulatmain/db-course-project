@@ -2,7 +2,9 @@ package com.bulatmain.conference.application.model.fabric.organizer;
 
 import com.bulatmain.conference.application.model.fabric.Fabric;
 import com.bulatmain.conference.domain.organizer.value.OrganizerId;
+import org.springframework.stereotype.Service;
 
+@Service
 public class OrganizerIdFabric implements Fabric<OrganizerId, String> {
     @Override
     public OrganizerId create(String record) {

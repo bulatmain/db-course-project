@@ -7,10 +7,10 @@ import java.time.Instant;
 @Getter
 public abstract class Event {
 
-    Instant timeOfOccurence;
+    Instant timeOfOccurrence;
 
     public Event() {
-        this.timeOfOccurence = Instant.now();
+        this.timeOfOccurrence = Instant.now();
     }
 
     public abstract String getRecord();

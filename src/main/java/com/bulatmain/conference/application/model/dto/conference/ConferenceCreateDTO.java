@@ -7,13 +7,8 @@ import lombok.Data;
 @Data
 @Builder
 public class ConferenceCreateDTO {
+    String id;
     String organizerId;
     String conferenceName;
 
-    public static ConferenceCreateDTO of(Conference conference) {
-        return ConferenceCreateDTO.builder()
-                .organizerId(conference.getOrganizer().getId().get())
-                .conferenceName(conference.getName().get())
-                .build();
-    }
 }
