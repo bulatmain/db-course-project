@@ -1,10 +1,14 @@
 package com.bulatmain.conference.infastructure.controller;
 
+import com.bulatmain.conference.application.model.dto.conference.ConferenceBriefDTO;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceDTO;
 import com.bulatmain.conference.application.port.gateway.exception.GatewayException;
+import com.bulatmain.conference.application.port.request.GetConferenceRequest;
 import com.bulatmain.conference.application.port.request.RegisterConferenceRequest;
+import com.bulatmain.conference.application.usecase.GetConferenceUC;
 import com.bulatmain.conference.application.usecase.GetConferencesUC;
 import com.bulatmain.conference.application.usecase.RegisterConferenceUC;
+import com.bulatmain.conference.application.usecase.exception.NoSuchConferenceException;
 import com.bulatmain.conference.domain.organizer.exception.ConferenceAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +27,7 @@ public class ConferenceController {
 
     private final RegisterConferenceUC registerConferenceUC;
     private final GetConferencesUC getConferencesUC;
+    private final GetConferenceUC getConferenceUC;
 
 
     @PostMapping("/register")
@@ -32,7 +37,7 @@ public class ConferenceController {
             return new ResponseEntity<>(id, HttpStatus.CREATED);
         } catch (ConferenceAlreadyExistsException e) {
             log.debug(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -40,7 +45,7 @@ public class ConferenceController {
     }
 
     @GetMapping
-    public ResponseEntity<Collection<ConferenceDTO>> getConferences() {
+    public ResponseEntity<Collection<ConferenceBriefDTO>> getConferences() {
         try {
             var conferences = getConferencesUC.execute();
             return new ResponseEntity<>(conferences, HttpStatus.OK);
@@ -49,4 +54,21 @@ public class ConferenceController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/{conferenceId}")
+    public ResponseEntity<ConferenceDTO> getConference(@PathVariable("conferenceId") String conferenceId) {
+        try {
+            var request = GetConferenceRequest.builder()
+                    .conferenceId(conferenceId)
+                    .build();
+            return new ResponseEntity<>(getConferenceUC.execute(request), HttpStatus.OK);
+        } catch (NoSuchConferenceException e) {
+            log.debug(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (GatewayException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
+

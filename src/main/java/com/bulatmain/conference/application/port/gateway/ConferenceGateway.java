@@ -1,5 +1,6 @@
 package com.bulatmain.conference.application.port.gateway;
 
+import com.bulatmain.conference.application.model.dto.conference.ConferenceBriefDTO;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceCreateDTO;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkCreateDTO;
@@ -18,5 +19,5 @@ public interface ConferenceGateway {
 
     TalkDTO addTalk(TalkCreateDTO talkCreateDto) throws GatewayException;
 
-    Collection<ConferenceDTO> getConferences() throws GatewayException;
+    Collection<ConferenceBriefDTO> getConferences() throws GatewayException;
 }

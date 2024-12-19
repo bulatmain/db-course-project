@@ -1,12 +1,14 @@
 package com.bulatmain.conference.infastructure.repository.dao;
 
+import com.bulatmain.conference.application.model.dto.conference.ConferenceBriefDTO;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceCreateDTO;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceDTO;
+import com.bulatmain.conference.application.model.dto.map.ConferenceMapper;
+import com.bulatmain.conference.application.model.dto.talk.TalkBriefDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkCreateDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkDTO;
 import com.bulatmain.conference.application.port.gateway.ConferenceGateway;
 import com.bulatmain.conference.application.port.gateway.exception.GatewayException;
-import com.bulatmain.conference.domain.talk.entity.Talk;
 import com.bulatmain.conference.infastructure.repository.db.CustomJdbcTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +28,19 @@ public class ConferenceDAO
         extends DAO<ConferenceDTO>
         implements ConferenceGateway {
     private final TalkDAO talkDAO;
-    private final ConferenceFromRS confMapping =
+    private final ConferenceMapper dtoMapper;
+    private final ConferenceFromRS rsMapping =
             new ConferenceFromRS();
 
     @Autowired
-    public ConferenceDAO(CustomJdbcTemplate source, TalkDAO talkDAO) {
+    public ConferenceDAO(
+            CustomJdbcTemplate source,
+            TalkDAO talkDAO,
+            ConferenceMapper dtoMapper
+    ) {
         super(source);
         this.talkDAO = talkDAO;
+        this.dtoMapper = dtoMapper;
     }
 
     @Override
@@ -43,12 +51,19 @@ public class ConferenceDAO
                 WHERE id = ?
                 """;
 
-        var query = new QueryStatement<ConferenceDTO>(sql, List.of(conferenceId), confMapping);
+        var query = new QueryStatement<ConferenceDTO>(sql, List.of(conferenceId), rsMapping);
 
-        return findUnique(
+        var dtoOpt = findUnique(
                 query,
                 String.format("WARN: returned multiple conferences with same id %s", conferenceId)
         );
+        if (dtoOpt.isEmpty()) {
+            return dtoOpt;
+        }
+        var dto = dtoOpt.get();
+        var talkIds = talkDAO.getIdsByConfId(conferenceId);
+        dto.setTalkIds(talkIds);
+        return Optional.of(dto);
     }
     @Override
     public Optional<ConferenceDTO> findByOrganizerIdAndName(String organizerId, String name)
@@ -60,7 +75,7 @@ public class ConferenceDAO
                         name = ?;
                 """;
 
-        var query = new QueryStatement<ConferenceDTO>(sql, List.of(organizerId, name), confMapping);
+        var query = new QueryStatement<ConferenceDTO>(sql, List.of(organizerId, name), rsMapping);
 
         return findUnique(
                 query,
@@ -100,15 +115,16 @@ public class ConferenceDAO
     }
 
     @Override
-    public Collection<ConferenceDTO> getConferences() throws GatewayException {
+    public Collection<ConferenceBriefDTO> getConferences() throws GatewayException {
         String sql = """
                 SELECT *
                 FROM conference;
                 """;
 
-        var query = new QueryStatement<ConferenceDTO>(sql, List.of(), confMapping);
+        var query = new QueryStatement<ConferenceDTO>(sql, List.of(), rsMapping);
 
-        return findAll(query);
+        var dtos = findAll(query);
+        return dtos.stream().map(dtoMapper::dtoToBrief).toList();
     }
 
 

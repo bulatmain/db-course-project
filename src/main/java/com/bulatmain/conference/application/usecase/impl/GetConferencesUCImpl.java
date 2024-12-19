@@ -1,5 +1,6 @@
 package com.bulatmain.conference.application.usecase.impl;
 
+import com.bulatmain.conference.application.model.dto.conference.ConferenceBriefDTO;
 import com.bulatmain.conference.application.model.dto.conference.ConferenceDTO;
 import com.bulatmain.conference.application.port.gateway.ConferenceGateway;
 import com.bulatmain.conference.application.port.gateway.exception.GatewayException;
@@ -17,7 +18,7 @@ public class GetConferencesUCImpl implements GetConferencesUC {
     private final ConferenceGateway conferenceGateway;
 
     @Override
-    public Collection<ConferenceDTO> execute()
+    public Collection<ConferenceBriefDTO> execute()
             throws GatewayException {
         return conferenceGateway.getConferences();
     }

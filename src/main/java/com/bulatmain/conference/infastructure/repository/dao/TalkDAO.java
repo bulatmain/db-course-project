@@ -1,7 +1,9 @@
 package com.bulatmain.conference.infastructure.repository.dao;
 
+import com.bulatmain.conference.application.model.dto.map.TalkMapper;
 import com.bulatmain.conference.application.model.dto.speaker.SpeakerCreateDTO;
 import com.bulatmain.conference.application.model.dto.speaker.SpeakerDTO;
+import com.bulatmain.conference.application.model.dto.talk.TalkBriefDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkCreateDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkDTO;
 import com.bulatmain.conference.application.port.gateway.TalkGateway;
@@ -14,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,13 +28,19 @@ public class TalkDAO
         extends DAO<TalkDTO>
         implements TalkGateway {
     private final SpeakerDAO speakerDAO;
-    private final TalkFromRS mapping =
+    private final TalkMapper dtoMapper;
+    private final TalkFromRS rsMapping =
             new TalkFromRS();
 
     @Autowired
-    public TalkDAO(CustomJdbcTemplate source, SpeakerDAO speakerDAO) {
+    public TalkDAO(
+            CustomJdbcTemplate source,
+            SpeakerDAO speakerDAO,
+            TalkMapper dtoMapper
+    ) {
         super(source);
         this.speakerDAO = speakerDAO;
+        this.dtoMapper = dtoMapper;
     }
 
     @Override
@@ -42,7 +52,7 @@ public class TalkDAO
                 WHERE   conference_id = ? and
                         name = ?
                 """;
-        var query = new QueryStatement<TalkDTO>(sql, List.of(conferenceId, name), mapping);
+        var query = new QueryStatement<TalkDTO>(sql, List.of(conferenceId, name), rsMapping);
 
         return findUnique(
                 query,
@@ -55,6 +65,55 @@ public class TalkDAO
     }
 
     @Override
+    public Collection<TalkBriefDTO> findByConfId(String conferenceId)
+            throws GatewayException {
+        String sql = """
+                SELECT *
+                FROM talk
+                WHERE conference_id = ?;
+                """;
+        var query = new QueryStatement<TalkDTO>(sql, List.of(conferenceId), rsMapping);
+        return findAll(query).stream()
+                .map(dtoMapper::dtoToBrief)
+                .toList();
+    }
+
+    @Override
+    public Collection<String> getIdsByConfId(String conferenceId) throws GatewayException {
+        String sql = """
+                SELECT id
+                FROM talk
+                WHERE conference_id = ?;
+                """;
+        try {
+            return source.preparedStatement(sql, stmt -> {
+                stmt.setString(1, conferenceId);
+                var rs = stmt.executeQuery();
+                var ids = new LinkedList<String>();
+                while (rs.next()) {
+                    ids.add(rs.getString("id"));
+                }
+                return ids;
+            });
+        } catch (SQLException e) {
+            throw new GatewayException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Collection<TalkBriefDTO> getTalks() throws GatewayException {
+        String sql = """
+                SELECT *
+                FROM talk;
+                """;
+
+        var query = new QueryStatement<TalkDTO>(sql, List.of(), rsMapping);
+
+        var dtos = findAll(query);
+        return dtos.stream().map(dtoMapper::dtoToBrief).toList();
+    }
+
+    @Override
     public Optional<TalkDTO> findById(String id)
             throws GatewayException {
         String sql = """
@@ -62,7 +121,7 @@ public class TalkDAO
                 FROM talk
                 WHERE   id = ?
                 """;
-        var query = new QueryStatement<TalkDTO>(sql, List.of(id), mapping);
+        var query = new QueryStatement<TalkDTO>(sql, List.of(id), rsMapping);
 
         return findUnique(
                 query,

@@ -1,5 +1,6 @@
 package com.bulatmain.conference.application.model.dto.map;
 
+import com.bulatmain.conference.application.model.dto.talk.TalkBriefDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkCreateDTO;
 import com.bulatmain.conference.application.model.dto.talk.TalkDTO;
 import org.mapstruct.Mapper;
@@ -14,4 +15,6 @@ import org.mapstruct.ReportingPolicy;
 public interface TalkMapper {
 
     TalkDTO createDtoToDto(TalkCreateDTO dto);
+
+    TalkBriefDTO dtoToBrief(TalkDTO talkDTO);
 }
