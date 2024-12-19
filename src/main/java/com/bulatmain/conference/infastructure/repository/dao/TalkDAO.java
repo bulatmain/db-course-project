@@ -123,14 +123,21 @@ public class TalkDAO
                 """;
         var query = new QueryStatement<TalkDTO>(sql, List.of(id), rsMapping);
 
-        return findUnique(
+        var dtoOpt = findUnique(
                 query,
                 String.format(
                         "WARN: find multiple talks with same id %s",
                         id
                 )
         );
-        
+        if (dtoOpt.isEmpty()) {
+            return dtoOpt;
+        }
+        var dto = dtoOpt.get();
+        var speakerIds = speakerDAO.getIdsByTalkId(id);
+//        var listenerIds = listenerDAO.getIdsByTalkId(id);
+        dto.setSpeakerIds(speakerIds);
+        return Optional.of(dto);
     }
     
     @Override

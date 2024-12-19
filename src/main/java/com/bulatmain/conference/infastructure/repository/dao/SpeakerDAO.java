@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,6 +59,32 @@ public class SpeakerDAO
                 stmt.executeUpdate();
             });
             return findById(dto.getId()).get();
+        } catch (SQLException e) {
+            throw new GatewayException(e.getMessage());
+        }
+    }
+
+    public Collection<String> getIdsByTalkId(String id) throws GatewayException {
+        String sql = """
+                SELECT speaker.id
+                FROM    (
+                            SELECT id
+                            FROM talk
+                            WHERE id = ?
+                        ) as exact_talk
+                        join talk_speaker on exact_talk.id = talk_speaker.talk_id
+                        join speaker on talk_speaker.speaker_id = speaker.id
+                """;
+        try {
+            return source.preparedStatement(sql, stmt -> {
+                stmt.setString(1, id);
+                var rs = stmt.executeQuery();
+                var ids = new LinkedList<String>();
+                while (rs.next()) {
+                    ids.add(rs.getString("id"));
+                }
+                return ids;
+            });
         } catch (SQLException e) {
             throw new GatewayException(e.getMessage());
         }
