@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,6 +97,18 @@ public class ConferenceDAO
     @Override
     public TalkDTO addTalk(TalkCreateDTO talkCreateDto) throws GatewayException {
         return talkDAO.save(talkCreateDto);
+    }
+
+    @Override
+    public Collection<ConferenceDTO> getConferences() throws GatewayException {
+        String sql = """
+                SELECT *
+                FROM conference;
+                """;
+
+        var query = new QueryStatement<ConferenceDTO>(sql, List.of(), confMapping);
+
+        return findAll(query);
     }
 
 

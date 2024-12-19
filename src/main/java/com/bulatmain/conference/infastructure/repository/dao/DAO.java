@@ -4,28 +4,44 @@ import com.bulatmain.conference.application.port.gateway.exception.GatewayExcept
 import com.bulatmain.conference.infastructure.repository.db.CustomJdbcTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.relational.core.sql.SQL;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
 public class DAO<T> {
     protected final CustomJdbcTemplate source;
+
+    public Optional<T> findUnique(QueryStatement<T> queryStatement)
+            throws GatewayException {
+        return findUnique(queryStatement, null);
+    }
     public Optional<T> findUnique(QueryStatement<T> queryStatement, String warnMessage)
             throws GatewayException {
+        var dtos = findAll(queryStatement);
+        if (dtos.isEmpty()) {
+            return Optional.empty();
+        }
+        if (1 < dtos.size()) {
+            log.debug(Objects.requireNonNullElse(
+                    warnMessage,
+                    "WARN: expected unique entity but found multiple")
+            );
+        }
+        return Optional.of(dtos.iterator().next());
+    }
+
+    public Collection<T> findAll(QueryStatement<T> queryStatement)
+            throws GatewayException {
+        Objects.requireNonNull(queryStatement);
         try {
-            var dtos = queryStatement.executeWith(source);
-            if (dtos.isEmpty()) {
-                return Optional.empty();
-            }
-            if (1 < dtos.size()) {
-                log.debug(warnMessage);
-            }
-            return Optional.of(dtos.iterator().next());
+            return queryStatement.executeWith(source);
         } catch (SQLException e) {
             throw new GatewayException(e.getMessage());
         }
