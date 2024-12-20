@@ -14,4 +14,4 @@ RUN mvn package
 FROM eclipse-temurin:17-jre-jammy
 ARG JAR_FILE=/target/conference-0.0.1-SNAPSHOT.jar
 COPY --from=maven $JAR_FILE /app/conference-0.0.1-SNAPSHOT.jar
-ENTRYPOINT java -jar /app/account-0.0.1-SNAPSHOT.jar
+ENTRYPOINT java -jar /app/conference-0.0.1-SNAPSHOT.jar

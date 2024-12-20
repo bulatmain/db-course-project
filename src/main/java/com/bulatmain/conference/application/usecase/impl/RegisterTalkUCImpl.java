@@ -56,7 +56,7 @@ public class RegisterTalkUCImpl implements RegisterTalkUC {
         var speakerCreateDto = speakerCreateDtoFromReq(request);
         createSpeakerIfNotExists(talk.id.get(), speakerCreateDto);
         return talk.id.get();
-    }
+    }   
 
     private Conference findConference(String conferenceId)
             throws NoSuchConferenceException, GatewayException {

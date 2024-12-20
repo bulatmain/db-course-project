@@ -3,18 +3,21 @@ spring:
     name: conference
   profiles:
     active: dev
-  h2:
-    console:
-      enabled: true
-      path: /h2
+  sql:
+    init:
+      mode: always
+      schema-location: classpath:/schema.sql
   datasource:
-    url:  jdbc:h2:mem:testdb;DATABASE_TO_UPPER=false
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
-
+    driverClassName: org.postgresql.Driver
+    url:  ${DATASOURCE_URL}
+    # url: jdbc:postgresql://localhost:5432/conference
+    username: ${DATASOURCE_USERNAME}
+    # username: postgres
+    password: ${DATASOURCE_PASSWORD}
+    # password: changeme
 server:
-  port: 8080
+ port: ${PORT}
+  # port: 8081
 
 logging:
   level:
